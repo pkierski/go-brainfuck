@@ -1,6 +1,7 @@
 package brainfuck
 
 import (
+	"errors"
 	"io"
 )
 
@@ -25,6 +26,82 @@ func New(code string, memSize int, input io.Reader, output io.Writer) *Brainfuck
 }
 
 func (bf *Brainfuck) Step() (bool, error) {
+	if bf.Finished() {
+		return true, errors.New("Already finished")
+	}
+	if bf.IP < 0 {
+		return true, errors.New("Invalid instruction pointer")
+	}
+
+	switch bf.Code[bf.IP] {
+	case '+':
+		bf.Memory[bf.MemPtr]++
+	case '-':
+		bf.Memory[bf.MemPtr]--
+	case '<':
+		bf.MemPtr = (bf.MemPtr + len(bf.Memory) - 1) % len(bf.Memory)
+	case '>':
+		bf.MemPtr = (bf.MemPtr + 1) % len(bf.Memory)
+	case '.':
+		_, err := bf.output.Write(bf.Memory[bf.MemPtr : bf.MemPtr+1])
+		if err != nil {
+			bf.IP++
+			return bf.Finished(), err
+		}
+	case ',':
+		_, err := bf.input.Read(bf.ioBuffer)
+		if err != nil {
+			bf.IP++
+			if err == io.EOF {
+				bf.Memory[bf.MemPtr] = 0
+				break
+			}
+			return bf.Finished(), err
+		}
+	case '[':
+		if bf.Memory[bf.MemPtr] == 0 {
+			neestedLoops := 1
+			newIP := bf.IP
+			for {
+				newIP++
+				if newIP == len(bf.Code) {
+					return true, errors.New("Loop not closed")
+				}
+				switch bf.Code[newIP] {
+				case '[':
+					neestedLoops++
+				case ']':
+					neestedLoops--
+				}
+				if neestedLoops == 0 {
+					break
+				}
+			}
+			bf.IP = newIP
+		}
+	case ']':
+		if bf.Memory[bf.MemPtr] != 0 {
+			newIP := bf.IP
+			neestedLoops := 1
+			for {
+				newIP--
+				if newIP == -1 {
+					return true, errors.New("Unbalanced closing loop")
+				}
+				switch bf.Code[newIP] {
+				case '[':
+					neestedLoops--
+				case ']':
+					neestedLoops++
+				}
+				if neestedLoops == 0 {
+					break
+				}
+			}
+			bf.IP = newIP
+		}
+	}
+	bf.IP++
 	return bf.Finished(), nil
 }
 
@@ -35,6 +112,7 @@ func (bf *Brainfuck) Finished() bool {
 func (bf *Brainfuck) Run() error {
 	var err error
 	for finished, err := bf.Step(); !finished && err == nil; finished, err = bf.Step() {
+		// intentionally empty, all work are done in Step()
 	}
 	return err
 }
