@@ -3,17 +3,16 @@ package brainfuck
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEmptyProgram(t *testing.T) {
 	bf := New("", 100, nil, nil)
 	err := bf.Run()
-	if err != nil {
-		t.Errorf("Unexpected error=%v", err)
-	}
-	if bf.IP != 0 {
-		t.Errorf("Unexpected IP value=%v", bf.IP)
-	}
+
+	assert.Nil(t, err)
+	assert.Equal(t, bf.IP, 0)
 }
 
 func TestHelloWorld(t *testing.T) {
@@ -24,10 +23,6 @@ func TestHelloWorld(t *testing.T) {
 		nil,
 		output)
 	err := bf.Run()
-	if err != nil {
-		t.Errorf("Unexpected error=%v", err)
-	}
-	if output.String() != "hello world" {
-		t.Errorf("Unexpected output: '%v'", output.String())
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, output.String(), "hello world")
 }
