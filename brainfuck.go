@@ -26,11 +26,12 @@ func New(code string, memSize int, input io.Reader, output io.Writer) *Brainfuck
 }
 
 func (bf *Brainfuck) Step() (bool, error) {
-	if bf.Finished() {
-		return true, errors.New("Already finished")
-	}
 	if bf.IP < 0 {
 		return true, errors.New("Invalid instruction pointer")
+	}
+
+	if bf.Finished() {
+		return true, errors.New("Already finished")
 	}
 
 	switch bf.Code[bf.IP] {
@@ -43,12 +44,18 @@ func (bf *Brainfuck) Step() (bool, error) {
 	case '>':
 		bf.MemPtr = (bf.MemPtr + 1) % len(bf.Memory)
 	case '.':
+		if bf.output == nil {
+			return bf.Finished(), errors.New("No output defined on output operation")
+		}
 		_, err := bf.output.Write(bf.Memory[bf.MemPtr : bf.MemPtr+1])
 		if err != nil {
 			bf.IP++
 			return bf.Finished(), err
 		}
 	case ',':
+		if bf.input == nil {
+			return bf.Finished(), errors.New("No input defined on input operation")
+		}
 		_, err := bf.input.Read(bf.ioBuffer)
 		if err != nil {
 			bf.IP++
@@ -111,7 +118,8 @@ func (bf *Brainfuck) Finished() bool {
 
 func (bf *Brainfuck) Run() error {
 	var err error
-	for finished, err := bf.Step(); !finished && err == nil; finished, err = bf.Step() {
+	var finished bool
+	for finished, err = bf.Step(); !finished && err == nil; finished, err = bf.Step() {
 		// intentionally empty, all work are done in Step()
 	}
 	return err
