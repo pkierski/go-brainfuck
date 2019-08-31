@@ -1,3 +1,8 @@
+// Brainfuck implementation, just for training purposes.
+//
+// This implementation allows to execute Brainfuck programs
+// step by step and examining (and altering) Brainfuck machine state
+// (memory, instruction pointer and memory pointer).
 package brainfuck
 
 import (
@@ -5,16 +10,24 @@ import (
 	"io"
 )
 
+// Brainfuck machine state.
 type Brainfuck struct {
-	Code     string
-	IP       int
-	Memory   []byte
+	// Code to execute.
+	Code string
+	// Instruction pointer.
+	IP int
+	// Memory.
+	Memory []byte
+	// Memory pointer.
 	MemPtr   int
 	input    io.Reader
 	output   io.Writer
 	ioBuffer []byte
 }
 
+// Creates new Brainfuck machine state.
+//
+// input and output may be empty if code doesn't use any output or input operation.
 func New(code string, memSize int, input io.Reader, output io.Writer) *Brainfuck {
 	return &Brainfuck{
 		Code:     code,
@@ -25,6 +38,15 @@ func New(code string, memSize int, input io.Reader, output io.Writer) *Brainfuck
 	}
 }
 
+// Executes one step on current state.
+//
+// Returns Finished() and error (if encountered).
+//
+// Possible sources of errors: I/O errors (errors on '.' or ',' command or
+// nil as input or output when state was created), unbalanced loops ('[' without
+// ']' or vice-versa), corrupted state (negative instruction pointer).
+//
+// In case of error instruction pointer remains at instruction causing error.
 func (bf *Brainfuck) Step() (bool, error) {
 	if bf.IP < 0 {
 		return true, errors.New("Invalid instruction pointer")
@@ -112,10 +134,15 @@ func (bf *Brainfuck) Step() (bool, error) {
 	return bf.Finished(), nil
 }
 
+// Returns true if instruction pointer reached end of the code.
 func (bf *Brainfuck) Finished() bool {
 	return bf.IP >= len(bf.Code)
 }
 
+// Executes program until Finished() is false or error encountered.
+//
+// In case of error execution is stopped and error is returned.
+// Instruction pointer remains on instruction causing error.
 func (bf *Brainfuck) Run() error {
 	var err error
 	var finished bool
