@@ -1,4 +1,4 @@
-// Brainfuck implementation, just for training purposes.
+// Package brainfuck implementation, just for training purposes.
 //
 // This implementation allows to execute Brainfuck programs
 // step by step and examining (and altering) Brainfuck machine state
@@ -25,7 +25,11 @@ type Brainfuck struct {
 	ioBuffer []byte
 }
 
-// Creates new Brainfuck machine state.
+// New creates Brainfuck machine state.
+//
+// Instruction pointer is set on first instruction in code
+//
+// Memory is filled with zeros and memory pointer is set to 0 (first cell in array).
 //
 // input and output may be empty if code doesn't use any output or input operation.
 func New(code string, memSize int, input io.Reader, output io.Writer) *Brainfuck {
@@ -38,7 +42,7 @@ func New(code string, memSize int, input io.Reader, output io.Writer) *Brainfuck
 	}
 }
 
-// Executes one step on current state.
+// Step executes one step on current state.
 //
 // Returns Finished() and error (if encountered).
 //
@@ -49,11 +53,11 @@ func New(code string, memSize int, input io.Reader, output io.Writer) *Brainfuck
 // In case of error instruction pointer remains at instruction causing error.
 func (bf *Brainfuck) Step() (bool, error) {
 	if bf.IP < 0 {
-		return true, errors.New("Invalid instruction pointer")
+		return true, errors.New("invalid instruction pointer")
 	}
 
 	if bf.Finished() {
-		return true, errors.New("Already finished")
+		return true, errors.New("already finished")
 	}
 
 	switch bf.Code[bf.IP] {
@@ -67,7 +71,7 @@ func (bf *Brainfuck) Step() (bool, error) {
 		bf.MemPtr = (bf.MemPtr + 1) % len(bf.Memory)
 	case '.':
 		if bf.output == nil {
-			return bf.Finished(), errors.New("No output defined on output operation")
+			return bf.Finished(), errors.New("no output defined on output operation")
 		}
 		_, err := bf.output.Write(bf.Memory[bf.MemPtr : bf.MemPtr+1])
 		if err != nil {
@@ -76,7 +80,7 @@ func (bf *Brainfuck) Step() (bool, error) {
 		}
 	case ',':
 		if bf.input == nil {
-			return bf.Finished(), errors.New("No input defined on input operation")
+			return bf.Finished(), errors.New("no input defined on input operation")
 		}
 		_, err := bf.input.Read(bf.ioBuffer)
 		if err != nil {
@@ -94,7 +98,7 @@ func (bf *Brainfuck) Step() (bool, error) {
 			for {
 				newIP++
 				if newIP == len(bf.Code) {
-					return true, errors.New("Loop not closed")
+					return true, errors.New("loop not closed")
 				}
 				switch bf.Code[newIP] {
 				case '[':
@@ -115,7 +119,7 @@ func (bf *Brainfuck) Step() (bool, error) {
 			for {
 				newIP--
 				if newIP == -1 {
-					return true, errors.New("Unbalanced closing loop")
+					return true, errors.New("no matching opening loop instruction")
 				}
 				switch bf.Code[newIP] {
 				case '[':
@@ -134,12 +138,12 @@ func (bf *Brainfuck) Step() (bool, error) {
 	return bf.Finished(), nil
 }
 
-// Returns true if instruction pointer reached end of the code.
+// Finished returns true if instruction pointer reached end of the code.
 func (bf *Brainfuck) Finished() bool {
 	return bf.IP >= len(bf.Code)
 }
 
-// Executes program until Finished() is false or error encountered.
+// Run executes program until Finished() is false or error encountered.
 //
 // In case of error execution is stopped and error is returned.
 // Instruction pointer remains on instruction causing error.
