@@ -1,4 +1,4 @@
-package brainfuck
+package brainfuck_test
 
 import (
 	"bytes"
@@ -6,11 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pkierski/go-brainfuck"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEmptyProgram(t *testing.T) {
-	bf := New("", 100, nil, nil)
+	bf := brainfuck.New("", 100, nil, nil)
 	err := bf.Run()
 
 	assert.NotNil(t, err)
@@ -18,7 +19,7 @@ func TestEmptyProgram(t *testing.T) {
 }
 
 func TestCorruptedIP(t *testing.T) {
-	bf := New("", 100, nil, nil)
+	bf := brainfuck.New("", 100, nil, nil)
 	bf.IP = -2
 	err := bf.Run()
 
@@ -27,7 +28,7 @@ func TestCorruptedIP(t *testing.T) {
 
 func TestHelloWorld(t *testing.T) {
 	output := &strings.Builder{}
-	bf := New(
+	bf := brainfuck.New(
 		"+[-[<<[+[--->]-[<<<]]]>>>-]>-.---.>..>.<<<<-.<+.>>>>>.>.<<.<-.",
 		100,
 		nil,
@@ -38,7 +39,7 @@ func TestHelloWorld(t *testing.T) {
 }
 
 func TestMemPtrWrapping(t *testing.T) {
-	bf := New("<>", 100, nil, nil)
+	bf := brainfuck.New("<>", 100, nil, nil)
 	var end bool
 	var err error
 
@@ -54,19 +55,19 @@ func TestMemPtrWrapping(t *testing.T) {
 }
 
 func TestUnbalancedOpenLoop(t *testing.T) {
-	bf := New("[[-]", 100, nil, nil)
+	bf := brainfuck.New("[[-]", 100, nil, nil)
 	err := bf.Run()
 	assert.NotNil(t, err)
 }
 
 func TestUnbalancedCloseLoop(t *testing.T) {
-	bf := New("[-]+]", 100, nil, nil)
+	bf := brainfuck.New("[-]+]", 100, nil, nil)
 	err := bf.Run()
 	assert.NotNil(t, err)
 }
 
 func TestNoOutputOnDot(t *testing.T) {
-	bf := New(".", 100, nil, nil)
+	bf := brainfuck.New(".", 100, nil, nil)
 	err := bf.Run()
 	assert.NotNil(t, err)
 }
@@ -78,20 +79,20 @@ func (*errorOutput) Write([]byte) (int, error) {
 }
 
 func TestNoErrorOutputOnDot(t *testing.T) {
-	bf := New(".", 100, nil, &errorOutput{})
+	bf := brainfuck.New(".", 100, nil, &errorOutput{})
 	err := bf.Run()
 	assert.NotNil(t, err)
 }
 
 func TestNoInputOnComma(t *testing.T) {
-	bf := New(",", 100, nil, nil)
+	bf := brainfuck.New(",", 100, nil, nil)
 	err := bf.Run()
 	assert.NotNil(t, err)
 }
 
 func TestEmptyInputOnComma(t *testing.T) {
 	emptyInput := bytes.NewBuffer([]byte{})
-	bf := New("+,", 100, emptyInput, nil)
+	bf := brainfuck.New("+,", 100, emptyInput, nil)
 	err := bf.Run()
 	assert.Nil(t, err)
 	assert.Equal(t, bf.Memory[0], byte(0))
@@ -105,7 +106,7 @@ func (*errorInput) Read([]byte) (int, error) {
 
 func TestErrorInputOnComma(t *testing.T) {
 	errorInput := &errorInput{}
-	bf := New("+,", 100, errorInput, nil)
+	bf := brainfuck.New("+,", 100, errorInput, nil)
 	err := bf.Run()
 	assert.NotNil(t, err)
 	assert.Equal(t, bf.Memory[0], byte(1))
