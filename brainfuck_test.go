@@ -34,7 +34,8 @@ func Example(t *testing.T) {
 		100,
 		nil,
 		output)
-	if bf.Run() == nil {
+	err := bf.Run()
+	if err == nil {
 		fmt.Println(output.String())
 	} else {
 		panic(err)
