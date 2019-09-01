@@ -3,6 +3,7 @@ package brainfuck_test
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -26,16 +27,20 @@ func TestCorruptedIP(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestHelloWorld(t *testing.T) {
+func Example(t *testing.T) {
 	output := &strings.Builder{}
 	bf := brainfuck.New(
 		"+[-[<<[+[--->]-[<<<]]]>>>-]>-.---.>..>.<<<<-.<+.>>>>>.>.<<.<-.",
 		100,
 		nil,
 		output)
-	err := bf.Run()
-	assert.Nil(t, err)
-	assert.Equal(t, output.String(), "hello world")
+	if bf.Run() == nil {
+		fmt.Println(output.String())
+	} else {
+		panic(err)
+	}
+	// Output:
+	// hello world
 }
 
 func TestMemPtrWrapping(t *testing.T) {
