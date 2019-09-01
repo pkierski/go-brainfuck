@@ -27,7 +27,7 @@ type Brainfuck struct {
 
 // New creates Brainfuck machine state.
 //
-// Instruction pointer is set on first instruction in code
+// Instruction pointer is set on first instruction in code.
 //
 // Memory is filled with zeros and memory pointer is set to 0 (first cell in array).
 //
