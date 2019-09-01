@@ -27,7 +27,7 @@ func TestCorruptedIP(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func Example(t *testing.T) {
+func Example() {
 	output := &strings.Builder{}
 	bf := brainfuck.New(
 		"+[-[<<[+[--->]-[<<<]]]>>>-]>-.---.>..>.<<<<-.<+.>>>>>.>.<<.<-.",
