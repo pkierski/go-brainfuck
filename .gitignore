@@ -17,3 +17,6 @@
 # go.sum
 go.sum
 
+# IDE folders
+.idea/
+.vscode/
