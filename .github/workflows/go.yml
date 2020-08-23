@@ -9,8 +9,8 @@ on:
 jobs:
 
   build:
-    name: Build
-    runs-on: ubuntu-latest
+    name: Build & test with Go ${{ matrix.go }} on ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         go: [ '1.13', '1.14' ]
